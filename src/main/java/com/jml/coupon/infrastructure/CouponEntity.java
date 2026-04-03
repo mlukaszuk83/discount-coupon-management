@@ -11,7 +11,7 @@ import java.time.Instant;
 class CouponEntity {
 
   @Id
-  @GeneratedValue
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   private String code;
   private Instant createdAt;
