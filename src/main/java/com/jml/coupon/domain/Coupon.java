@@ -1,7 +1,10 @@
 package com.jml.coupon.domain;
 
+import lombok.Data;
+
 import java.time.Instant;
 
+@Data
 public class Coupon {
 
   private CouponCode code;

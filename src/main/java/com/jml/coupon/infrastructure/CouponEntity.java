@@ -1,6 +1,7 @@
 package com.jml.coupon.infrastructure;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.Instant;
 
@@ -8,6 +9,7 @@ import java.time.Instant;
 @Table(name = "coupons", uniqueConstraints = {
     @UniqueConstraint(columnNames = "code")
 })
+@Data
 class CouponEntity {
 
   @Id
