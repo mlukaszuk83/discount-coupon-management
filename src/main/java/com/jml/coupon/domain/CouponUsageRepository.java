@@ -1,5 +1,8 @@
 package com.jml.coupon.domain;
 
+import com.jml.coupon.domain.model.Coupon;
+import com.jml.coupon.domain.model.UserId;
+
 public interface CouponUsageRepository {
 
   /**

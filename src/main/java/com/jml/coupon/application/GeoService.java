@@ -1,6 +1,6 @@
 package com.jml.coupon.application;
 
-import com.jml.coupon.domain.Country;
+import com.jml.coupon.domain.model.Country;
 
 public interface GeoService {
 

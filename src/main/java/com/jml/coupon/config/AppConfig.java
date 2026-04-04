@@ -1,8 +1,8 @@
 package com.jml.coupon.config;
 
-import com.jml.coupon.application.CreateCouponHandler;
 import com.jml.coupon.application.GeoService;
-import com.jml.coupon.application.UseCouponHandler;
+import com.jml.coupon.application.handler.CreateCouponHandler;
+import com.jml.coupon.application.handler.UseCouponHandler;
 import com.jml.coupon.domain.CouponRepository;
 import com.jml.coupon.domain.CouponUsageRepository;
 import org.springframework.context.annotation.Bean;

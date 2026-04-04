@@ -1,9 +1,9 @@
 package com.jml.coupon.api;
 
-import com.jml.coupon.application.CreateCouponCommand;
-import com.jml.coupon.application.CreateCouponHandler;
-import com.jml.coupon.application.UseCouponCommand;
-import com.jml.coupon.application.UseCouponHandler;
+import com.jml.coupon.application.command.CreateCouponCommand;
+import com.jml.coupon.application.command.UseCouponCommand;
+import com.jml.coupon.application.handler.CreateCouponHandler;
+import com.jml.coupon.application.handler.UseCouponHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
