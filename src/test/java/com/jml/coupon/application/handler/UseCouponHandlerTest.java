@@ -105,7 +105,7 @@ class UseCouponHandlerTest {
     // when / then
     Assertions.assertThatExceptionOfType(InvalidCountryException.class)
         .isThrownBy(() -> systemUnderTest.handle(createCommand(code), ip))
-        .withMessage("Given coupon country is different than user country of origin");
+        .withMessage("The coupon cannot be used in this country");
   }
 
   @Test
@@ -142,7 +142,7 @@ class UseCouponHandlerTest {
     // when / then
     Assertions.assertThatExceptionOfType(CouponLimitReachedException.class)
         .isThrownBy(() -> systemUnderTest.handle(createCommand(code), IP))
-        .withMessage("Coupon can't be used anymore, the usage limit has been reached");
+        .withMessage("This coupon can't be used anymore, the usage limit has been reached");
   }
 
   @Test

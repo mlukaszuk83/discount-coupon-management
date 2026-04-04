@@ -1,8 +1,8 @@
 package com.jml.coupon.domain.exception;
 
-public class EmptyCountryException extends RuntimeException {
+public class EmptyCountryException extends DomainException {
 
   public EmptyCountryException() {
-    super("Country code cannot be empty");
+    super(DomainExceptionCode.COUNTRY_EMPTY, "Country code cannot be empty");
   }
 }

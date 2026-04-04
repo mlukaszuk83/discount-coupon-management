@@ -1,8 +1,8 @@
 package com.jml.coupon.domain.exception;
 
-public class CouponAlreadyExistsException extends RuntimeException {
+public class CouponAlreadyExistsException extends DomainException {
 
   public CouponAlreadyExistsException() {
-    super("A coupon with given code already exists");
+    super(DomainExceptionCode.COUPON_EXISTS, "A coupon with given code already exists");
   }
 }

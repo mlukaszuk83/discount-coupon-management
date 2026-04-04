@@ -1,8 +1,8 @@
 package com.jml.coupon.domain.exception;
 
-public class CouponNotFoundException extends RuntimeException {
+public class CouponNotFoundException extends DomainException {
 
   public CouponNotFoundException() {
-    super("Coupon with given code was not found");
+    super(DomainExceptionCode.COUPON_NOT_FOUND, "Coupon with given code was not found");
   }
 }

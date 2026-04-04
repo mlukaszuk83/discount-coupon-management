@@ -15,19 +15,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/coupons")
 @RequiredArgsConstructor
-public class CouponController {
+class CouponController {
 
   private final CreateCouponHandler createCouponHandler;
   private final UseCouponHandler useCouponHandler;
 
   @PostMapping
-  public String create(@RequestBody CreateCouponCommand cmd) {
+  String create(@RequestBody CreateCouponCommand cmd) {
     createCouponHandler.handle(cmd);
     return "CREATED";
   }
 
   @PostMapping("/use")
-  public String use(@RequestBody UseCouponCommand cmd, HttpServletRequest request) {
+  String use(@RequestBody UseCouponCommand cmd, HttpServletRequest request) {
     final String ip = extractIp(request);
     useCouponHandler.handle(cmd, ip);
     return "SUCCESS";

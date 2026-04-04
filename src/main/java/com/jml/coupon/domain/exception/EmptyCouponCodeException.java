@@ -1,8 +1,8 @@
 package com.jml.coupon.domain.exception;
 
-public class EmptyCouponCodeException extends RuntimeException {
+public class EmptyCouponCodeException extends DomainException {
 
   public EmptyCouponCodeException() {
-    super("Coupon code cannot be empty");
+    super(DomainExceptionCode.COUPON_CODE_EMPTY, "Coupon code cannot be empty");
   }
 }

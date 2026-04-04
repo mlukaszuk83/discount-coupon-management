@@ -53,6 +53,6 @@ class CouponTest {
 
     // when / then
     assertThatExceptionOfType(InvalidCountryException.class).isThrownBy(() -> coupon.validateCountry(country))
-        .withMessage("Given coupon country is different than user country of origin");
+        .withMessage("The coupon cannot be used in this country");
   }
 }
