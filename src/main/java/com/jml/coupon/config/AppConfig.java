@@ -17,8 +17,8 @@ public class AppConfig {
   }
 
   @Bean
-  UseCouponHandler useCouponHandler(CouponRepository couponRepository) {
-    return new UseCouponHandler(couponRepository);
+  UseCouponHandler useCouponHandler(CouponRepository couponRepository, CouponUsageRepository couponUsageRepository, GeoService geoService) {
+    return new UseCouponHandler(couponRepository, couponUsageRepository, geoService);
   }
 
 }

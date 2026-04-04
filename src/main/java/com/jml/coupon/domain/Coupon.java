@@ -3,10 +3,12 @@ package com.jml.coupon.domain;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.Objects;
 
 @Data
 public class Coupon {
 
+  private Long id;
   private CouponCode code;
   private Country country;
   private int maxUses;
@@ -19,5 +21,12 @@ public class Coupon {
     this.maxUses = maxUses;
     this.currentUses = 0;
     this.createdAt = Instant.now();
+  }
+
+  public void validateCountry(Country country) {
+
+    if (!Objects.equals(this.country, country)) {
+      throw new InvalidCountryException();
+    }
   }
 }
