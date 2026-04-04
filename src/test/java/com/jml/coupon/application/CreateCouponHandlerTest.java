@@ -1,6 +1,7 @@
 package com.jml.coupon.application;
 
 import com.jml.coupon.domain.Coupon;
+import com.jml.coupon.domain.CouponAlreadyExistsException;
 import com.jml.coupon.domain.CouponRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,10 +9,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,12 +34,12 @@ class CreateCouponHandlerTest {
     // given
     Instant before = Instant.now();
     CreateCouponCommand cmd = new CreateCouponCommand("COUPON-code", "country-CODE", 10);
-    Instant after = Instant.now();
 
     // when
     systemUnderTest.handle(cmd);
 
     // then
+    Instant after = Instant.now();
     ArgumentCaptor<Coupon> couponArgumentCaptor = ArgumentCaptor.forClass(Coupon.class);
     verify(couponRepository).save(couponArgumentCaptor.capture());
 
@@ -46,5 +51,18 @@ class CreateCouponHandlerTest {
     assertThat(savedCoupon.getMaxUses()).isEqualTo(10);
     assertThat(savedCoupon.getCurrentUses()).isZero();
     assertThat(savedCoupon.getCreatedAt()).isBetween(before, after);
+  }
+
+  @Test
+  void givenCreateCouponCommand_whenCouponWithGivenCodeAlreadyExists_thenCouponAlreadyExistsExceptionIsThrown() {
+
+    // given
+    CreateCouponCommand cmd = new CreateCouponCommand("duplicated-code", "country-code", 1);
+    doThrow(DataIntegrityViolationException.class).when(couponRepository)
+        .save(any(Coupon.class));
+
+    // when
+    assertThatExceptionOfType(CouponAlreadyExistsException.class).isThrownBy(() -> systemUnderTest.handle(cmd))
+        .withMessage("A coupon with given code already exists");
   }
 }

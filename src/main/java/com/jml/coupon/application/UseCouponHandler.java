@@ -44,8 +44,8 @@ public class UseCouponHandler {
       log.debug("User: {} tried to use the coupon: {} more than once in a same moment", userId, coupon);
       // UNIQUE constraint hit -> user already used this coupon
       throw new CouponAlreadyUsedException();
+    } finally {
+      log.info("Coupon usage handling finished");
     }
-
-    log.info("Coupon usage handling finished");
   }
 }
