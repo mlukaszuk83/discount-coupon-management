@@ -32,6 +32,7 @@ class DomainExceptionToHttpCodeMapperTest {
         Arguments.of(new CouponNotFoundException(), HttpStatus.NOT_FOUND),
         Arguments.of(new EmptyCouponCodeException(), HttpStatus.BAD_REQUEST),
         Arguments.of(new EmptyCountryException(), HttpStatus.BAD_REQUEST),
+        Arguments.of(new EmptyUserIdException(), HttpStatus.BAD_REQUEST),
         Arguments.of(new InvalidCountryException(), HttpStatus.FORBIDDEN));
   }
 }

@@ -83,4 +83,56 @@ class CouponControllerTest {
         .andExpect(jsonPath("$.title").value("COUPON_EXISTS"))
         .andExpect(jsonPath("$.type").value("https://api.coupons.com/errors/coupon-already-exists"));
   }
+
+  @Test
+  void create_givenRequestEmptyCouponCode_shouldReturnA400StatusResponse() throws Exception {
+
+    // given
+    String body = """
+        {
+          "couponCode": "",
+          "countryCode": "PL",
+          "maxUses": 5
+        }
+        """;
+
+    when(couponRepository.save(any(Coupon.class))).thenThrow(DataIntegrityViolationException.class);
+
+    // when / then
+    mockMvc.perform(post("/v1/coupons").contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.detail").value("Coupon code cannot be empty"))
+        .andExpect(jsonPath("$.instance").value("/v1/coupons"))
+        .andExpect(jsonPath("$.status").value("400"))
+        .andExpect(jsonPath("$.title").value("COUPON_CODE_EMPTY"))
+        .andExpect(jsonPath("$.type").value("https://api.coupons.com/errors/empty-coupon-code"));
+  }
+
+  @Test
+  void create_givenRequestWithEmptyCountryCode_shouldReturnA400StatusResponse() throws Exception {
+
+    // given
+    String body = """
+        {
+          "couponCode": "code-2",
+          "countryCode": "",
+          "maxUses": 5
+        }
+        """;
+
+    when(couponRepository.save(any(Coupon.class))).thenThrow(DataIntegrityViolationException.class);
+
+    // when / then
+    mockMvc.perform(post("/v1/coupons").contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.detail").value("Country code cannot be empty"))
+        .andExpect(jsonPath("$.instance").value("/v1/coupons"))
+        .andExpect(jsonPath("$.status").value("400"))
+        .andExpect(jsonPath("$.title").value("COUNTRY_EMPTY"))
+        .andExpect(jsonPath("$.type").value("https://api.coupons.com/errors/empty-country-code"));
+  }
 }

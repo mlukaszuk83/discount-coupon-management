@@ -14,7 +14,8 @@ public enum DomainExceptionCode {
   COUPON_NOT_FOUND("coupon-not-found"),
   COUPON_CODE_EMPTY("empty-coupon-code"),
   COUNTRY_EMPTY("empty-country-code"),
-  COUNTRY_INVALID("invalid-country");
+  COUNTRY_INVALID("invalid-country"),
+  USER_EMPTY("empty-user-id");
 
   private final String type;
 }

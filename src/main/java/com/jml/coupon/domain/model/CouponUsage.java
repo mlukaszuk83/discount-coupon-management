@@ -1,6 +1,8 @@
 package com.jml.coupon.domain.model;
 
+import com.jml.coupon.domain.exception.EmptyUserIdException;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
 
@@ -20,5 +22,11 @@ public class CouponUsage {
 
   public Long getCouponId() {
     return coupon.getId();
+  }
+
+  public void validateUser() {
+    if (StringUtils.isBlank(userId)) {
+      throw new EmptyUserIdException();
+    }
   }
 }

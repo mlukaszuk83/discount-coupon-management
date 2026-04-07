@@ -95,6 +95,31 @@ class CouponUsageControllerTest {
   }
 
   @Test
+  void use_givenRequestWithEmptyCouponCode_shouldReturnA400StatusResponse() throws Exception {
+
+    // given
+    String body = """
+        {
+          "code": "",
+          "userId": "user-1"
+        }
+        """;
+
+    when(couponRepository.findByCode(any(CouponCode.class))).thenReturn(Optional.empty());
+
+    // when / then
+    mockMvc.perform(post("/v1/coupon-usages").contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.detail").value("Coupon code cannot be empty"))
+        .andExpect(jsonPath("$.instance").value("/v1/coupon-usages"))
+        .andExpect(jsonPath("$.status").value("400"))
+        .andExpect(jsonPath("$.title").value("COUPON_CODE_EMPTY"))
+        .andExpect(jsonPath("$.type").value("https://api.coupons.com/errors/empty-coupon-code"));
+  }
+
+  @Test
   void use_givenRequestWithInvalidCountryCode_shouldReturnA403StatusResponse() throws Exception {
 
     // given
@@ -118,6 +143,32 @@ class CouponUsageControllerTest {
         .andExpect(jsonPath("$.status").value("403"))
         .andExpect(jsonPath("$.title").value("COUNTRY_INVALID"))
         .andExpect(jsonPath("$.type").value("https://api.coupons.com/errors/invalid-country"));
+  }
+
+  @Test
+  void use_givenRequestWithEmptyUserId_shouldReturnA400StatusResponse() throws Exception {
+
+    // given
+    String body = """
+        {
+          "code": "code-3",
+          "userId": ""
+        }
+        """;
+
+    Coupon coupon = new Coupon(new CouponCode("code-3"), new Country("PL"), 4);
+    when(couponRepository.findByCode(any(CouponCode.class))).thenReturn(Optional.of(coupon));
+
+    // when / then
+    mockMvc.perform(post("/v1/coupon-usages").contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.detail").value("User id cannot be empty"))
+        .andExpect(jsonPath("$.instance").value("/v1/coupon-usages"))
+        .andExpect(jsonPath("$.status").value("400"))
+        .andExpect(jsonPath("$.title").value("USER_EMPTY"))
+        .andExpect(jsonPath("$.type").value("https://api.coupons.com/errors/empty-user-id"));
   }
 
   @Test
@@ -148,7 +199,7 @@ class CouponUsageControllerTest {
   }
 
   @Test
-  void use_givenAUserTriesToUseTheCouponTwiceInASameTime_theDataIntegrityExceptionIsThrown_thenShouldReturnA409StatusResponse() throws Exception {
+  void use_givenUserTriesToUseTheCouponTwiceInASameTime_theDataIntegrityExceptionIsThrown_thenShouldReturnA409StatusResponse() throws Exception {
 
     // given
     String body = """

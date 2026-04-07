@@ -4,10 +4,7 @@ import com.jml.coupon.application.GeoService;
 import com.jml.coupon.application.request.UseCouponRequest;
 import com.jml.coupon.domain.CouponRepository;
 import com.jml.coupon.domain.CouponUsageRepository;
-import com.jml.coupon.domain.exception.CouponAlreadyUsedException;
-import com.jml.coupon.domain.exception.CouponLimitReachedException;
-import com.jml.coupon.domain.exception.CouponNotFoundException;
-import com.jml.coupon.domain.exception.InvalidCountryException;
+import com.jml.coupon.domain.exception.*;
 import com.jml.coupon.domain.model.Country;
 import com.jml.coupon.domain.model.Coupon;
 import com.jml.coupon.domain.model.CouponCode;
@@ -115,6 +112,23 @@ class UseCouponHandlerTest {
     Assertions.assertThatExceptionOfType(InvalidCountryException.class)
         .isThrownBy(() -> systemUnderTest.handle(createRequest(code), ip))
         .withMessage("The coupon cannot be used in this country");
+  }
+
+  @Test
+  void givenEmptyUserId_thenEmptyUserIdExceptionIsThrown() {
+
+    // given
+    String code = "empty-user-id-coupon-code";
+    CouponCode couponCode = new CouponCode(code);
+    Coupon coupon = new Coupon(couponCode, COUNTRY, 2);
+
+    when(couponRepository.findByCode(couponCode)).thenReturn(Optional.of(coupon));
+    when(geoService.resolve(IP)).thenReturn(COUNTRY);
+
+    // when / then
+    Assertions.assertThatExceptionOfType(EmptyUserIdException.class)
+        .isThrownBy(() -> systemUnderTest.handle(new UseCouponRequest(code, null), IP))
+        .withMessage("User id cannot be empty");
   }
 
   @Test

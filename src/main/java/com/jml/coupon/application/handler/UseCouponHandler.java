@@ -40,6 +40,8 @@ public class UseCouponHandler {
 
     final String userId = request.userId();
     final CouponUsage couponUsage = new CouponUsage(coupon, userId);
+    couponUsage.validateUser();
+    
     if (couponUsageRepository.exists(couponUsage)) {
       throw new CouponAlreadyUsedException();
     }
