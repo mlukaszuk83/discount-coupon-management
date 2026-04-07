@@ -85,7 +85,7 @@ class CouponApplicationIT {
   }
 
   @Test
-  void shouldUseExistingCoupon() {
+  void shouldUseExistingCoupon_couponCodeCaseInsensitive() {
 
     // given
     String couponCode = "code-2";
@@ -94,7 +94,8 @@ class CouponApplicationIT {
     restTemplate.exchange(createURL("/v1/coupons"), HttpMethod.POST, createEntity, CouponDto.class);
 
     String userId = "user-id";
-    UseCouponRequest useCouponRequest = new UseCouponRequest(couponCode, userId);
+    String upperCaseCouponCode = couponCode.toUpperCase();
+    UseCouponRequest useCouponRequest = new UseCouponRequest(upperCaseCouponCode, userId);
     HttpEntity<UseCouponRequest> useEntity = new HttpEntity<>(useCouponRequest, new HttpHeaders());
 
     // when
