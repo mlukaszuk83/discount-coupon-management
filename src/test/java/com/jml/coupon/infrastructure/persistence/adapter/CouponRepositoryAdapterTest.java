@@ -49,7 +49,7 @@ class CouponRepositoryAdapterTest {
 
     CouponEntity savedCoupon = couponEntityArgumentCaptor.getValue();
     assertThat(savedCoupon).extracting(CouponEntity::getCode, CouponEntity::getCountry, CouponEntity::getMaxUses, CouponEntity::getCurrentUses, CouponEntity::getCreatedAt)
-        .containsExactly(couponCode, couponCountry, coupon.getMaxUses(), coupon.getCurrentUses(), coupon.getCreatedAt());
+        .containsExactly(couponCode, couponCountry.toUpperCase(), coupon.getMaxUses(), coupon.getCurrentUses(), coupon.getCreatedAt());
   }
 
   @Test

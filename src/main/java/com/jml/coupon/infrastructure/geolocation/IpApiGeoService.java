@@ -7,7 +7,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-@Profile({"prod", "test"})
+@Profile("prod")
 @Component
 @RequiredArgsConstructor
 class IpApiGeoService implements GeoService {

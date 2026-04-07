@@ -1,31 +1,86 @@
 package com.jml.coupon.api.controller;
 
-import com.jml.coupon.application.dto.CouponDto;
+import com.jml.coupon.api.exception.DomainExceptionToHttpCodeMapper;
 import com.jml.coupon.application.handler.CreateCouponHandler;
-import com.jml.coupon.application.request.CreateCouponRequest;
+import com.jml.coupon.domain.CouponRepository;
+import com.jml.coupon.domain.model.Coupon;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@ExtendWith(MockitoExtension.class)
+@WebMvcTest(CouponController.class)
+@Import({CreateCouponHandler.class, DomainExceptionToHttpCodeMapper.class})
 class CouponControllerTest {
 
-  private final CreateCouponHandler createCouponHandler = mock(CreateCouponHandler.class);
-  private final CouponController systemUnderTest = new CouponController(createCouponHandler);
+  @Autowired
+  private MockMvc mockMvc;
+
+  @MockitoBean
+  private CouponRepository couponRepository;
 
   @Test
-  void create_givenRequest_shouldUseHandler_thenReturnDto() {
+  void create_givenRequestWithNonExistingCouponCode_shouldCreateItAndReturnABodyWith201StatusResponse() throws Exception {
 
     // given
-    CreateCouponRequest request = mock(CreateCouponRequest.class);
-    CouponDto dto = mock(CouponDto.class);
-    when(createCouponHandler.handle(request)).thenReturn(dto);
+    String body = """
+        {
+          "couponCode": "code-1",
+          "countryCode": "PL",
+          "maxUses": 5
+        }
+        """;
 
-    // when
-    CouponDto result = systemUnderTest.create(request);
+    when(couponRepository.save(any(Coupon.class))).thenReturn(1L);
 
-    // then
-    assertThat(result).isSameAs(dto);
+    // when / then
+    mockMvc.perform(post("/v1/coupons").contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isCreated())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value("1"))
+        .andExpect(jsonPath("$.code").value("code-1"))
+        .andExpect(jsonPath("$.country").value("PL"))
+        .andExpect(jsonPath("$.maxUses").value("5"))
+        .andExpect(jsonPath("$.currentUses").value("0"))
+        .andExpect(jsonPath("$.createdAt").exists());
+  }
+
+  @Test
+  void create_givenRequestWithExistingCouponCode_shouldReturnA409StatusResponse() throws Exception {
+
+    // given
+    String body = """
+        {
+          "couponCode": "code-2",
+          "countryCode": "PL",
+          "maxUses": 5
+        }
+        """;
+
+    when(couponRepository.save(any(Coupon.class))).thenThrow(DataIntegrityViolationException.class);
+
+    // when / then
+    mockMvc.perform(post("/v1/coupons").contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isConflict())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.detail").value("A coupon with given code already exists"))
+        .andExpect(jsonPath("$.instance").value("/v1/coupons"))
+        .andExpect(jsonPath("$.status").value("409"))
+        .andExpect(jsonPath("$.title").value("COUPON_EXISTS"))
+        .andExpect(jsonPath("$.type").value("https://api.coupons.com/errors/coupon-already-exists"));
   }
 }

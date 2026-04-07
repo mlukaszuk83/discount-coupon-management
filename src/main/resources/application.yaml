@@ -23,4 +23,4 @@ spring:
 
 logging:
   level:
-    com.jml: DEBUG
+    com.jml: INFO

@@ -25,9 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 class JpaCouponUsageRepositoryTest {
 
   @Container
-  private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:latest").withDatabaseName("test-db")
-      .withUsername("test")
-      .withPassword("test");
+  private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:latest");
 
   @DynamicPropertySource
   private static void overrideProps(DynamicPropertyRegistry registry) {

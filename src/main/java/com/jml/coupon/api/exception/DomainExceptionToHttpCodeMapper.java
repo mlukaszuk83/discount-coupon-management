@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-class DomainExceptionToHttpCodeMapper {
+public class DomainExceptionToHttpCodeMapper {
 
   HttpStatus toStatus(DomainException e) {
 

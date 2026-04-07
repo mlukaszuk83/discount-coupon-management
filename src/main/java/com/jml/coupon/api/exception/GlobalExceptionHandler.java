@@ -13,7 +13,7 @@ import java.net.URI;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
-class GlobalExceptionHandler {
+public class GlobalExceptionHandler {
 
   private final DomainExceptionToHttpCodeMapper domainExceptionToHttpCodeMapper;
 
