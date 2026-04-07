@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(Exception.class)
-  public ProblemDetail handleGenericException(Exception e, HttpServletRequest request) {
+  ProblemDetail handleGenericException(Exception e, HttpServletRequest request) {
 
     final ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
     problem.setTitle("Internal server error");

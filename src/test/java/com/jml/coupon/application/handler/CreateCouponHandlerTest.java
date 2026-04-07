@@ -32,7 +32,7 @@ class CreateCouponHandlerTest {
   private CreateCouponHandler systemUnderTest;
 
   @Test
-  void givenCreateCouponCommand_shouldCreateNewCoupon_thenSaveInRepositoryAndReturnCouponDto() {
+  void givenCreateCouponRequest_shouldCreateNewCoupon_thenSaveInRepositoryAndReturnCouponDto() {
 
     // given
     long couponId = 1;
@@ -73,7 +73,7 @@ class CreateCouponHandlerTest {
   }
 
   @Test
-  void givenCreateCouponCommand_whenCouponWithGivenCodeAlreadyExists_thenCouponAlreadyExistsExceptionIsThrown() {
+  void givenCreateCouponRequest_whenCouponWithGivenCodeAlreadyExists_thenCouponAlreadyExistsExceptionIsThrown() {
 
     // given
     CreateCouponRequest request = new CreateCouponRequest("duplicated-code", "country-code", 1);

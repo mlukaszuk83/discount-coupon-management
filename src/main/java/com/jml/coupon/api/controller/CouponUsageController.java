@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/coupon-usages")
 @RequiredArgsConstructor
-public class CouponUsageController {
+class CouponUsageController {
 
   private final UseCouponHandler useCouponHandler;
 
