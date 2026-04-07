@@ -10,8 +10,9 @@ public interface CouponRepository {
   /**
    * Stores new Coupon
    * @param coupon to save
+   * @return id of the created coupon
    */
-  void save(Coupon coupon);
+  Long save(Coupon coupon);
 
   /**
    * Fetches a coupon by given coupon code

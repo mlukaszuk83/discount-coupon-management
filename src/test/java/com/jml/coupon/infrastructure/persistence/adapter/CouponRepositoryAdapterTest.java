@@ -28,15 +28,20 @@ class CouponRepositoryAdapterTest {
   private CouponRepositoryAdapter systemUnderTest;
 
   @Test
-  void save_givenCouponToSave_shouldConvertItToEntity_thenSaveInRepository() {
+  void save_givenCouponToSave_shouldConvertItToEntity_thenSaveInRepositoryAndReturnId() {
 
     // given
+    long couponId = 1;
     Coupon coupon = new Coupon(new CouponCode("coupon-code"), new Country("country-code"), 10);
+    CouponEntity entity = mock(CouponEntity.class);
+    when(entity.getId()).thenReturn(couponId);
+    when(jpaCouponRepository.save(any(CouponEntity.class))).thenReturn(entity);
 
     // when
-    systemUnderTest.save(coupon);
+    Long result = systemUnderTest.save(coupon);
 
     // then
+    assertThat(result).isEqualTo(couponId);
     ArgumentCaptor<CouponEntity> couponEntityArgumentCaptor = ArgumentCaptor.forClass(CouponEntity.class);
     verify(jpaCouponRepository).save(couponEntityArgumentCaptor.capture());
 

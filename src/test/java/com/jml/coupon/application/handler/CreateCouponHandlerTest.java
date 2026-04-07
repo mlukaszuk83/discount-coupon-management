@@ -1,9 +1,12 @@
 package com.jml.coupon.application.handler;
 
-import com.jml.coupon.application.command.CreateCouponCommand;
+import com.jml.coupon.application.dto.CouponDto;
+import com.jml.coupon.application.request.CreateCouponRequest;
 import com.jml.coupon.domain.CouponRepository;
 import com.jml.coupon.domain.exception.CouponAlreadyExistsException;
+import com.jml.coupon.domain.model.Country;
 import com.jml.coupon.domain.model.Coupon;
+import com.jml.coupon.domain.model.CouponCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -17,8 +20,7 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CreateCouponHandlerTest {
@@ -30,14 +32,16 @@ class CreateCouponHandlerTest {
   private CreateCouponHandler systemUnderTest;
 
   @Test
-  void givenCreateCouponCommand_shouldBuildNewCoupon_thenSaveInRepository() {
+  void givenCreateCouponCommand_shouldCreateNewCoupon_thenSaveInRepositoryAndReturnCouponDto() {
 
     // given
+    long couponId = 1;
     Instant before = Instant.now();
-    CreateCouponCommand cmd = new CreateCouponCommand("COUPON-code", "country-CODE", 10);
+    CreateCouponRequest request = new CreateCouponRequest("COUPON-code", "country-CODE", 10);
+    when(couponRepository.save(any(Coupon.class))).thenReturn(couponId);
 
     // when
-    systemUnderTest.handle(cmd);
+    CouponDto result = systemUnderTest.handle(request);
 
     // then
     Instant after = Instant.now();
@@ -45,25 +49,39 @@ class CreateCouponHandlerTest {
     verify(couponRepository).save(couponArgumentCaptor.capture());
 
     Coupon savedCoupon = couponArgumentCaptor.getValue();
-    assertThat(savedCoupon.getCode()
-        .value()).isEqualTo("coupon-code");
-    assertThat(savedCoupon.getCountry()
-        .code()).isEqualTo("COUNTRY-CODE");
+    CouponCode couponCode = savedCoupon.getCode();
+    Country couponCountry = savedCoupon.getCountry();
+
+    assertThat(couponCode.value()).isEqualTo("coupon-code");
+    assertThat(couponCountry.code()).isEqualTo("COUNTRY-CODE");
     assertThat(savedCoupon.getMaxUses()).isEqualTo(10);
     assertThat(savedCoupon.getCurrentUses()).isZero();
     assertThat(savedCoupon.getCreatedAt()).isBetween(before, after);
+
+    assertThat(result).extracting(CouponDto::id,
+            CouponDto::code,
+            CouponDto::country,
+            CouponDto::maxUses,
+            CouponDto::currentUses,
+            CouponDto::createdAt)
+        .containsExactly(couponId,
+            couponCode.value(),
+            couponCountry.code(),
+            savedCoupon.getMaxUses(),
+            savedCoupon.getCurrentUses(),
+            savedCoupon.getCreatedAt());
   }
 
   @Test
   void givenCreateCouponCommand_whenCouponWithGivenCodeAlreadyExists_thenCouponAlreadyExistsExceptionIsThrown() {
 
     // given
-    CreateCouponCommand cmd = new CreateCouponCommand("duplicated-code", "country-code", 1);
+    CreateCouponRequest request = new CreateCouponRequest("duplicated-code", "country-code", 1);
     doThrow(DataIntegrityViolationException.class).when(couponRepository)
         .save(any(Coupon.class));
 
     // when
-    assertThatExceptionOfType(CouponAlreadyExistsException.class).isThrownBy(() -> systemUnderTest.handle(cmd))
+    assertThatExceptionOfType(CouponAlreadyExistsException.class).isThrownBy(() -> systemUnderTest.handle(request))
         .withMessage("A coupon with given code already exists");
   }
 }

@@ -19,9 +19,10 @@ class CouponRepositoryAdapter implements CouponRepository {
   private final JpaCouponRepository jpaCouponRepository;
 
   @Override
-  public void save(Coupon coupon) {
-    final CouponEntity entity = toEntity(coupon);
-    jpaCouponRepository.save(entity);
+  public Long save(Coupon coupon) {
+    CouponEntity entity = toEntity(coupon);
+    entity = jpaCouponRepository.save(entity);
+    return entity.getId();
   }
 
   @Override

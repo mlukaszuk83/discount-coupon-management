@@ -1,7 +1,7 @@
 package com.jml.coupon.application.handler;
 
 import com.jml.coupon.application.GeoService;
-import com.jml.coupon.application.command.UseCouponCommand;
+import com.jml.coupon.application.request.UseCouponRequest;
 import com.jml.coupon.domain.CouponRepository;
 import com.jml.coupon.domain.CouponUsageRepository;
 import com.jml.coupon.domain.exception.CouponAlreadyUsedException;
@@ -11,7 +11,7 @@ import com.jml.coupon.domain.exception.InvalidCountryException;
 import com.jml.coupon.domain.model.Country;
 import com.jml.coupon.domain.model.Coupon;
 import com.jml.coupon.domain.model.CouponCode;
-import com.jml.coupon.domain.model.UserId;
+import com.jml.coupon.domain.model.CouponUsage;
 import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class UseCouponHandlerTest {
 
   private static final String IP = "1.2.3.4";
   private static final Country COUNTRY = new Country("country-code");
-  private static final UserId USER_ID = new UserId("user-id");
+  private static final String USER_ID = "user-id";
 
   @Mock
   private CouponRepository couponRepository;
@@ -54,14 +54,15 @@ class UseCouponHandlerTest {
     String code = "unused-coupon-code";
     CouponCode couponCode = new CouponCode(code);
     Coupon coupon = new Coupon(couponCode, COUNTRY, 5);
+    CouponUsage couponUsage = new CouponUsage(coupon, USER_ID);
 
     when(couponRepository.findByCode(couponCode)).thenReturn(Optional.of(coupon));
     when(geoService.resolve(IP)).thenReturn(COUNTRY);
-    when(couponUsageRepository.exists(coupon, USER_ID)).thenReturn(false);
+    when(couponUsageRepository.exists(couponUsage)).thenReturn(false);
     when(couponRepository.incrementIfAvailable(couponCode)).thenReturn(true);
 
     // when
-    systemUnderTest.handle(createCommand(code), IP);
+    systemUnderTest.handle(createRequest(code), IP);
 
     // then
     InOrder inOrder = Mockito.inOrder(couponRepository, couponUsageRepository, geoService);
@@ -70,11 +71,11 @@ class UseCouponHandlerTest {
     inOrder.verify(geoService)
         .resolve(IP);
     inOrder.verify(couponUsageRepository)
-        .exists(coupon, USER_ID);
+        .exists(couponUsage);
     inOrder.verify(couponRepository)
         .incrementIfAvailable(couponCode);
     inOrder.verify(couponUsageRepository)
-        .save(coupon, USER_ID);
+        .save(couponUsage);
   }
 
   @Test
@@ -86,7 +87,7 @@ class UseCouponHandlerTest {
 
     // when / then
     Assertions.assertThatExceptionOfType(CouponNotFoundException.class)
-        .isThrownBy(() -> systemUnderTest.handle(createCommand(code), IP))
+        .isThrownBy(() -> systemUnderTest.handle(createRequest(code), IP))
         .withMessage("Coupon with given code was not found");
   }
 
@@ -104,7 +105,7 @@ class UseCouponHandlerTest {
 
     // when / then
     Assertions.assertThatExceptionOfType(InvalidCountryException.class)
-        .isThrownBy(() -> systemUnderTest.handle(createCommand(code), ip))
+        .isThrownBy(() -> systemUnderTest.handle(createRequest(code), ip))
         .withMessage("The coupon cannot be used in this country");
   }
 
@@ -115,14 +116,15 @@ class UseCouponHandlerTest {
     String code = "already-used-coupon-code";
     CouponCode couponCode = new CouponCode(code);
     Coupon coupon = new Coupon(couponCode, COUNTRY, 5);
+    CouponUsage couponUsage = new CouponUsage(coupon, USER_ID);
 
     when(couponRepository.findByCode(couponCode)).thenReturn(Optional.of(coupon));
     when(geoService.resolve(IP)).thenReturn(COUNTRY);
-    when(couponUsageRepository.exists(coupon, USER_ID)).thenReturn(true);
+    when(couponUsageRepository.exists(couponUsage)).thenReturn(true);
 
     // when / then
     Assertions.assertThatExceptionOfType(CouponAlreadyUsedException.class)
-        .isThrownBy(() -> systemUnderTest.handle(createCommand(code), IP))
+        .isThrownBy(() -> systemUnderTest.handle(createRequest(code), IP))
         .withMessage("Coupon with given code was already used by given user");
   }
 
@@ -133,15 +135,16 @@ class UseCouponHandlerTest {
     String code = "max-number-of-usages-reached-coupon-code";
     CouponCode couponCode = new CouponCode(code);
     Coupon coupon = new Coupon(couponCode, COUNTRY, 5);
+    CouponUsage couponUsage = new CouponUsage(coupon, USER_ID);
 
     when(couponRepository.findByCode(couponCode)).thenReturn(Optional.of(coupon));
     when(geoService.resolve(IP)).thenReturn(COUNTRY);
-    when(couponUsageRepository.exists(coupon, USER_ID)).thenReturn(false);
+    when(couponUsageRepository.exists(couponUsage)).thenReturn(false);
     when(couponRepository.incrementIfAvailable(couponCode)).thenReturn(false);
 
     // when / then
     Assertions.assertThatExceptionOfType(CouponLimitReachedException.class)
-        .isThrownBy(() -> systemUnderTest.handle(createCommand(code), IP))
+        .isThrownBy(() -> systemUnderTest.handle(createRequest(code), IP))
         .withMessage("This coupon can't be used anymore, the usage limit has been reached");
   }
 
@@ -152,23 +155,24 @@ class UseCouponHandlerTest {
     String code = "max-number-of-usages-reached-coupon-code";
     CouponCode couponCode = new CouponCode(code);
     Coupon coupon = new Coupon(couponCode, COUNTRY, 5);
+    CouponUsage couponUsage = new CouponUsage(coupon, USER_ID);
 
     when(couponRepository.findByCode(couponCode)).thenReturn(Optional.of(coupon));
     when(geoService.resolve(IP)).thenReturn(COUNTRY);
-    when(couponUsageRepository.exists(coupon, USER_ID)).thenReturn(false);
+    when(couponUsageRepository.exists(couponUsage)).thenReturn(false);
     when(couponRepository.incrementIfAvailable(couponCode)).thenReturn(true);
 
     doThrow(DataIntegrityViolationException.class).when(couponUsageRepository)
-        .save(coupon, USER_ID);
+        .save(couponUsage);
 
     // when / then
     Assertions.assertThatExceptionOfType(CouponAlreadyUsedException.class)
-        .isThrownBy(() -> systemUnderTest.handle(createCommand(code), IP))
+        .isThrownBy(() -> systemUnderTest.handle(createRequest(code), IP))
         .withMessage("Coupon with given code was already used by given user");
   }
 
   @NonNull
-  private UseCouponCommand createCommand(String code) {
-    return new UseCouponCommand(code, USER_ID.id());
+  private UseCouponRequest createRequest(String code) {
+    return new UseCouponRequest(code, USER_ID);
   }
 }

@@ -1,7 +1,7 @@
 package com.jml.coupon.infrastructure.persistence.adapter;
 
 import com.jml.coupon.domain.model.Coupon;
-import com.jml.coupon.domain.model.UserId;
+import com.jml.coupon.domain.model.CouponUsage;
 import com.jml.coupon.infrastructure.persistence.entity.CouponUsageEntity;
 import com.jml.coupon.infrastructure.persistence.springdata.JpaCouponUsageRepository;
 import org.jspecify.annotations.NonNull;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 class CouponUsageRepositoryAdapterTest {
 
   private static final Coupon COUPON = createCoupon();
-  private static final UserId USER_ID = new UserId("user-id");
+  private static final String USER_ID = "user-id";
 
   @Mock
   private JpaCouponUsageRepository jpaCouponUsageRepository;
@@ -39,11 +39,11 @@ class CouponUsageRepositoryAdapterTest {
     when(jpaCouponUsageRepository.existsByCouponIdAndUserId(anyLong(), anyString())).thenReturn(true);
 
     // when
-    boolean result = systemUnderTest.exists(COUPON, USER_ID);
+    boolean result = systemUnderTest.exists(new CouponUsage(COUPON, USER_ID));
 
     // then
     assertThat(result).isTrue();
-    verify(jpaCouponUsageRepository).existsByCouponIdAndUserId(COUPON.getId(), USER_ID.id());
+    verify(jpaCouponUsageRepository).existsByCouponIdAndUserId(COUPON.getId(), USER_ID);
   }
 
   @Test
@@ -53,7 +53,7 @@ class CouponUsageRepositoryAdapterTest {
     Instant before = Instant.now();
 
     // when
-    systemUnderTest.save(COUPON, USER_ID);
+    systemUnderTest.save(new CouponUsage(COUPON, USER_ID));
 
     // then
     Instant after = Instant.now();
@@ -62,7 +62,7 @@ class CouponUsageRepositoryAdapterTest {
 
     CouponUsageEntity savedCouponUsage = couponEntityArgumentCaptor.getValue();
     assertThat(savedCouponUsage.getCouponId()).isEqualTo(COUPON.getId());
-    assertThat(savedCouponUsage.getUserId()).isEqualTo(USER_ID.id());
+    assertThat(savedCouponUsage.getUserId()).isEqualTo(USER_ID);
     assertThat(savedCouponUsage.getUsedAt()).isBetween(before, after);
   }
 

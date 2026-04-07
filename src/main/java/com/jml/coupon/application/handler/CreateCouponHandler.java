@@ -1,6 +1,7 @@
 package com.jml.coupon.application.handler;
 
-import com.jml.coupon.application.command.CreateCouponCommand;
+import com.jml.coupon.application.dto.CouponDto;
+import com.jml.coupon.application.request.CreateCouponRequest;
 import com.jml.coupon.domain.CouponRepository;
 import com.jml.coupon.domain.exception.CouponAlreadyExistsException;
 import com.jml.coupon.domain.model.Country;
@@ -19,14 +20,16 @@ public class CreateCouponHandler {
   private final CouponRepository couponRepository;
 
   @Transactional
-  public void handle(CreateCouponCommand cmd) {
+  public CouponDto handle(CreateCouponRequest request) {
 
     log.info("Coupon create handling started");
+    log.debug("Request object: {}", request);
     try {
-      final Coupon coupon = buildCoupon(cmd);
-      couponRepository.save(coupon);
+      final Coupon coupon = toCoupon(request);
+      final Long id = couponRepository.save(coupon);
+      return toDto(coupon, id);
     } catch (DataIntegrityViolationException ex) {
-      log.debug("Tried to create a coupon for code: [{}], but it already exists", cmd.couponCode());
+      log.debug("Tried to create a coupon for code: [{}], but it already exists", request.couponCode());
       // UNIQUE constraint hit -> coupon with given code already exists
       throw new CouponAlreadyExistsException();
     } finally {
@@ -35,7 +38,13 @@ public class CreateCouponHandler {
   }
 
   @NonNull
-  private Coupon buildCoupon(CreateCouponCommand cmd) {
-    return new Coupon(new CouponCode(cmd.couponCode()), new Country(cmd.countryCode()), cmd.maxUses());
+  private Coupon toCoupon(CreateCouponRequest request) {
+    return new Coupon(new CouponCode(request.couponCode()), new Country(request.countryCode()), request.maxUses());
+  }
+
+  private CouponDto toDto(Coupon coupon, Long couponId) {
+    final CouponCode couponCode = coupon.getCode();
+    final Country couponCountry = coupon.getCountry();
+    return new CouponDto(couponId, couponCode.value(), couponCountry.code(), coupon.getMaxUses(), coupon.getCurrentUses(), coupon.getCreatedAt());
   }
 }

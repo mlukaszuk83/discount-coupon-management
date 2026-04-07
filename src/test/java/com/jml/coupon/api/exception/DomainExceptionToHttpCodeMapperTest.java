@@ -1,4 +1,4 @@
-package com.jml.coupon.api;
+package com.jml.coupon.api.exception;
 
 import com.jml.coupon.domain.exception.*;
 import org.junit.jupiter.params.ParameterizedTest;

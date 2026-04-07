@@ -1,9 +1,8 @@
-package com.jml.coupon.api;
+package com.jml.coupon.api.controller;
 
-import com.jml.coupon.application.command.CreateCouponCommand;
-import com.jml.coupon.application.command.UseCouponCommand;
-import com.jml.coupon.application.handler.CreateCouponHandler;
+import com.jml.coupon.application.dto.CouponUsageDto;
 import com.jml.coupon.application.handler.UseCouponHandler;
+import com.jml.coupon.application.request.UseCouponRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -13,24 +12,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/coupons")
+@RequestMapping("/v1/coupon-usages")
 @RequiredArgsConstructor
-class CouponController {
+public class CouponUsageController {
 
-  private final CreateCouponHandler createCouponHandler;
   private final UseCouponHandler useCouponHandler;
 
   @PostMapping
-  String create(@RequestBody CreateCouponCommand cmd) {
-    createCouponHandler.handle(cmd);
-    return "CREATED";
-  }
-
-  @PostMapping("/use")
-  String use(@RequestBody UseCouponCommand cmd, HttpServletRequest request) {
-    final String ip = extractIp(request);
-    useCouponHandler.handle(cmd, ip);
-    return "SUCCESS";
+  CouponUsageDto use(@RequestBody UseCouponRequest request, HttpServletRequest servletRequest) {
+    final String ip = extractIp(servletRequest);
+    return useCouponHandler.handle(request, ip);
   }
 
   private String extractIp(HttpServletRequest request) {
