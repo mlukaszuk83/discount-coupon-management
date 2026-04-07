@@ -15,10 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CouponUsageRepositoryAdapterTest {
@@ -50,13 +48,19 @@ class CouponUsageRepositoryAdapterTest {
   void save_givenCouponAndUserIdToSave_shouldConvertItToEntity_thenSaveInRepository() {
 
     // given
-    Instant before = Instant.now();
+    long couponUsageId = 1;
+    CouponUsageEntity entity = mock(CouponUsageEntity.class);
+    when(entity.getId()).thenReturn(couponUsageId);
+    when(jpaCouponUsageRepository.save(any(CouponUsageEntity.class))).thenReturn(entity);
 
     // when
-    systemUnderTest.save(new CouponUsage(COUPON, USER_ID));
+    Instant before = Instant.now();
+    Long result = systemUnderTest.save(new CouponUsage(COUPON, USER_ID));
+    Instant after = Instant.now();
 
     // then
-    Instant after = Instant.now();
+    assertThat(result).isEqualTo(couponUsageId);
+
     ArgumentCaptor<CouponUsageEntity> couponEntityArgumentCaptor = ArgumentCaptor.forClass(CouponUsageEntity.class);
     verify(jpaCouponUsageRepository).save(couponEntityArgumentCaptor.capture());
 

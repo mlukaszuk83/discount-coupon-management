@@ -32,7 +32,9 @@ class CouponRepositoryAdapterTest {
 
     // given
     long couponId = 1;
-    Coupon coupon = new Coupon(new CouponCode("coupon-code"), new Country("country-code"), 10);
+    String couponCode = "coupon-code";
+    String couponCountry = "country-code";
+    Coupon coupon = new Coupon(new CouponCode(couponCode), new Country(couponCountry), 10);
     CouponEntity entity = mock(CouponEntity.class);
     when(entity.getId()).thenReturn(couponId);
     when(jpaCouponRepository.save(any(CouponEntity.class))).thenReturn(entity);
@@ -47,9 +49,7 @@ class CouponRepositoryAdapterTest {
 
     CouponEntity savedCoupon = couponEntityArgumentCaptor.getValue();
     assertThat(savedCoupon).extracting(CouponEntity::getCode, CouponEntity::getCountry, CouponEntity::getMaxUses, CouponEntity::getCurrentUses, CouponEntity::getCreatedAt)
-        .containsExactly(coupon.getCode()
-            .value(), coupon.getCountry()
-            .code(), coupon.getMaxUses(), coupon.getCurrentUses(), coupon.getCreatedAt());
+        .containsExactly(couponCode, couponCountry, coupon.getMaxUses(), coupon.getCurrentUses(), coupon.getCreatedAt());
   }
 
   @Test

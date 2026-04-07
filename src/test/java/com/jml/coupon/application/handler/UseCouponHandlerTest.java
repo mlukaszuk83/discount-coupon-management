@@ -16,15 +16,15 @@ import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.time.Instant;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -54,28 +54,36 @@ class UseCouponHandlerTest {
     String code = "unused-coupon-code";
     CouponCode couponCode = new CouponCode(code);
     Coupon coupon = new Coupon(couponCode, COUNTRY, 5);
-    CouponUsage couponUsage = new CouponUsage(coupon, USER_ID);
 
     when(couponRepository.findByCode(couponCode)).thenReturn(Optional.of(coupon));
     when(geoService.resolve(IP)).thenReturn(COUNTRY);
-    when(couponUsageRepository.exists(couponUsage)).thenReturn(false);
+    when(couponUsageRepository.exists(any(CouponUsage.class))).thenReturn(false);
     when(couponRepository.incrementIfAvailable(couponCode)).thenReturn(true);
 
     // when
+    Instant before = Instant.now();
     systemUnderTest.handle(createRequest(code), IP);
+    Instant after = Instant.now();
 
     // then
+    ArgumentCaptor<CouponUsage> couponUsageArgumentCaptor = ArgumentCaptor.forClass(CouponUsage.class);
     InOrder inOrder = Mockito.inOrder(couponRepository, couponUsageRepository, geoService);
     inOrder.verify(couponRepository)
         .findByCode(couponCode);
     inOrder.verify(geoService)
         .resolve(IP);
     inOrder.verify(couponUsageRepository)
-        .exists(couponUsage);
+        .exists(couponUsageArgumentCaptor.capture());
     inOrder.verify(couponRepository)
         .incrementIfAvailable(couponCode);
+
+    CouponUsage capturedCouponUsage = couponUsageArgumentCaptor.getValue();
     inOrder.verify(couponUsageRepository)
-        .save(couponUsage);
+        .save(capturedCouponUsage);
+
+    assertThat(capturedCouponUsage.getCoupon()).isSameAs(coupon);
+    assertThat(capturedCouponUsage.getUserId()).isEqualTo(USER_ID);
+    assertThat(capturedCouponUsage.getUsedAt()).isBetween(before, after);
   }
 
   @Test
@@ -115,12 +123,11 @@ class UseCouponHandlerTest {
     // given
     String code = "already-used-coupon-code";
     CouponCode couponCode = new CouponCode(code);
-    Coupon coupon = new Coupon(couponCode, COUNTRY, 5);
-    CouponUsage couponUsage = new CouponUsage(coupon, USER_ID);
+    Coupon coupon = new Coupon(couponCode, COUNTRY, 2);
 
     when(couponRepository.findByCode(couponCode)).thenReturn(Optional.of(coupon));
     when(geoService.resolve(IP)).thenReturn(COUNTRY);
-    when(couponUsageRepository.exists(couponUsage)).thenReturn(true);
+    when(couponUsageRepository.exists(any(CouponUsage.class))).thenReturn(true);
 
     // when / then
     Assertions.assertThatExceptionOfType(CouponAlreadyUsedException.class)
@@ -134,12 +141,11 @@ class UseCouponHandlerTest {
     // given
     String code = "max-number-of-usages-reached-coupon-code";
     CouponCode couponCode = new CouponCode(code);
-    Coupon coupon = new Coupon(couponCode, COUNTRY, 5);
-    CouponUsage couponUsage = new CouponUsage(coupon, USER_ID);
+    Coupon coupon = new Coupon(couponCode, COUNTRY, 1);
 
     when(couponRepository.findByCode(couponCode)).thenReturn(Optional.of(coupon));
     when(geoService.resolve(IP)).thenReturn(COUNTRY);
-    when(couponUsageRepository.exists(couponUsage)).thenReturn(false);
+    when(couponUsageRepository.exists(any(CouponUsage.class))).thenReturn(false);
     when(couponRepository.incrementIfAvailable(couponCode)).thenReturn(false);
 
     // when / then
@@ -154,16 +160,15 @@ class UseCouponHandlerTest {
     // given
     String code = "max-number-of-usages-reached-coupon-code";
     CouponCode couponCode = new CouponCode(code);
-    Coupon coupon = new Coupon(couponCode, COUNTRY, 5);
-    CouponUsage couponUsage = new CouponUsage(coupon, USER_ID);
+    Coupon coupon = new Coupon(couponCode, COUNTRY, 15);
 
     when(couponRepository.findByCode(couponCode)).thenReturn(Optional.of(coupon));
     when(geoService.resolve(IP)).thenReturn(COUNTRY);
-    when(couponUsageRepository.exists(couponUsage)).thenReturn(false);
+    when(couponUsageRepository.exists(any(CouponUsage.class))).thenReturn(false);
     when(couponRepository.incrementIfAvailable(couponCode)).thenReturn(true);
 
     doThrow(DataIntegrityViolationException.class).when(couponUsageRepository)
-        .save(couponUsage);
+        .save(any(CouponUsage.class));
 
     // when / then
     Assertions.assertThatExceptionOfType(CouponAlreadyUsedException.class)
