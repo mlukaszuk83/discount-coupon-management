@@ -8,17 +8,16 @@ import com.jml.coupon.application.request.CreateCouponRequest;
 import com.jml.coupon.application.request.UseCouponRequest;
 import com.jml.coupon.infrastructure.persistence.springdata.JpaCouponRepository;
 import com.jml.coupon.infrastructure.persistence.springdata.JpaCouponUsageRepository;
+import org.json.JSONException;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -40,8 +39,6 @@ class CouponApplicationIT {
 
   @Container
   private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:latest");
-  @Autowired
-  private JpaCouponRepository jpaCouponRepository;
 
   @DynamicPropertySource
   private static void overrideProps(DynamicPropertyRegistry registry) {
@@ -53,10 +50,10 @@ class CouponApplicationIT {
   private final TestRestTemplate restTemplate = new TestRestTemplate();
 
   @Autowired
-  private JpaCouponRepository couponRepository;
+  private JpaCouponRepository jpaCouponRepository;
 
   @Autowired
-  private JpaCouponUsageRepository couponUsageRepository;
+  private JpaCouponUsageRepository jpaCouponUsageRepository;
 
   @Test
   void shouldCreateNewCoupon() {
@@ -109,7 +106,54 @@ class CouponApplicationIT {
     assertThat(couponUsageDto.userId()).isEqualTo(userId);
     assertThat(couponUsageDto.usedAt()).isNotNull();
 
-    assertThat(couponUsageRepository.findById(couponUsageDto.id())).isPresent();
+    assertThat(jpaCouponUsageRepository.findById(couponUsageDto.id())).isPresent();
+  }
+
+  @Test
+  void givenHealthCheckEndpoint_thenShouldReturnStatus200AndExpectedBody() throws JSONException {
+
+    // given
+    String expectedBody = """
+        {
+          "components": {
+            "db": {
+              "status": "UP"
+            },
+            "diskSpace": {
+              "status": "UP"
+            },
+            "livenessState": {
+              "status": "UP"
+            },
+            "ping": {
+              "status": "UP"
+            },
+            "readinessState": {
+              "status": "UP"
+            },
+            "ssl": {
+              "status": "UP"
+            },
+            "geoService": {
+              "status": "UP"
+            }
+          },
+          "groups": [
+            "liveness",
+            "readiness"
+          ],
+          "status": "UP"
+        }
+        """;
+
+    HttpEntity<String> entity = new HttpEntity<>(null, new HttpHeaders());
+
+    // when
+    ResponseEntity<String> response = restTemplate.exchange(createURL("/actuator/health"), HttpMethod.GET, entity, String.class);
+
+    // then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    JSONAssert.assertEquals(expectedBody, response.getBody(), true);
   }
 
   private String createURL(String uri) {

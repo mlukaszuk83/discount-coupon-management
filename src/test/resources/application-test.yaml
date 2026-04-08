@@ -3,5 +3,14 @@ spring:
     hibernate:
       ddl-auto: validate
 
-    flyway:
+  flyway:
+    enabled: true
+
+management:
+  endpoint:
+    health:
+      show-components: always
+      show-details: never
+  health:
+    db:
       enabled: true

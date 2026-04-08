@@ -20,6 +20,9 @@ This service provides a simple API to create and use discount coupons.
   - Returns `409 Conflict` if the coupon was already used by the user or the maximum number of coupon usages has been
     reached, with JSON body as ProblemDetail.
   - Returns `500 Internal Server Error` in case on any unexpected error with JSON body as ProblemDetail.
+- GET request to `/actuator/health`:
+  - Returns `200 OK` and JSON body containing information about service health, including db and geolocation service
+    health
 - When application is about to be run locally by dev, the `spring.profiles.active` application.yaml property can be
   changed to `dev` to avoid calling `http://ip-api.com` to validate user country by request id (it would always return
   fail result, because of local 127.0.0.1 address used).
@@ -45,7 +48,6 @@ This service provides a simple API to create and use discount coupons.
   - `spring-boot-devtools` – for local development
   - `spring-boot-starter-flyway` - for db schema migration
   - `spring-boot-docker-compose` – for optional Docker Compose support
-- Hibernate Validator (`hibernate-validator`) – for IP parameter validation
 - Lombok (`lombok`) – to reduce boilerplate
 - Apache Commons Text (`commons-text`) – for string utilities
 - Testing:
